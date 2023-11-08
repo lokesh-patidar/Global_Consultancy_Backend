@@ -27,10 +27,6 @@ const productSchema = new mongoose.Schema({
           type: Number,
           required: [true, 'Price is required'],
      },
-     qty: {
-          type: Number,
-          required: [true, 'Quantity is required'],
-     }
 }, { timestamps: true });
 
 const ProductModel = mongoose.model('Product', productSchema);

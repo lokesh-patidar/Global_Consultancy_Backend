@@ -5,30 +5,31 @@ const ErrorHandler = require("../Utils/ErrorHandler");
 // Create a new product
 exports.createProduct = catchError(async (req, res, next) => {
      const {
-          title,
+          picture,
+          name,
+          GenericName,
+          rating,
           description,
           price,
-          subCategory,
-          tags,
-          category,
      } = req.body;
 
      const product = new ProductModel({
-          title,
+          picture,
+          name,
+          GenericName,
+          rating,
           description,
           price,
-          subCategory,
-          tags,
-          category,
+          isAvailable: true,
      });
      const savedProduct = await product.save();
      res.status(201).json({ success: true, message: 'Product Created successfully', product: savedProduct });
 });
 
 
-
 exports.createMultiProduct = catchError(async (req, res, next) => {
      const products = req.body;
+     console.log({ products });
      const insertedProducts = await ProductModel.insertMany(products);
      res.status(201).json({ message: 'Products added successfully', data: insertedProducts });
 });
@@ -97,3 +98,11 @@ exports.deleteProduct = catchError(async (req, res, next) => {
      }
      res.status(200).json({ success: true, message: 'Product deleted successfully!', product: deletedProduct });
 });
+
+
+
+exports.deleteAllProducts = catchError(async (req, res, next) => {
+     await ProductModel.deleteMany({});
+     res.status(200).json({ message: 'All products deleted successfully' });
+});
+
