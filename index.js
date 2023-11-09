@@ -6,6 +6,7 @@ const { ErrorMiddleware } = require('./Middleware/Error');
 const sls = require('serverless-http');
 const productRoutes = require('./Routes/productRoutes');
 const cartRoutes = require('./Routes/cartRoute');
+const orderRoutes = require('./Routes/orderRoute');
 const app = express();
 
 app.use(express.json());
@@ -22,6 +23,7 @@ app.get("/", (req, res) => {
 app.use(userRoutes);
 app.use(productRoutes);
 app.use(cartRoutes);
+app.use(orderRoutes);
 
 
 app.listen(process.env.PORT || 4700, async () => {
