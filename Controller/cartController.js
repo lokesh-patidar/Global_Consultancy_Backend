@@ -3,7 +3,6 @@ const { CartModel } = require("../Models/cartModel");
 const { ProductModel } = require("../Models/productModel");
 const ErrorHandler = require("../Utils/ErrorHandler");
 
-// Create a new product
 exports.addToCart = catchError(async (req, res, next) => {
 
      const { productId } = req.params;
