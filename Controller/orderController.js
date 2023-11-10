@@ -2,31 +2,36 @@ const { catchError } = require("../Middleware/CatchError");
 const { CartModel } = require("../Models/cartModel");
 const { OrderModel } = require("../Models/orderModel");
 const nodemailer = require("nodemailer");
+const ErrorHandler = require("../Utils/ErrorHandler");
 const { config } = require("dotenv");
 config();
 
 
-const transporter = nodemailer.createTransport({
-     host: "smtp.forwardemail.net",
-     port: 465,
-     secure: true,
-     auth: {
-          user: 'lokeshbansiya29988@gmail.com', // Your Gmail email address
-          pass: 'lokeshbansiya8822#', // Your Gmail password or an app-specific password
-     },
-});
-
-console.log({ auth: transporter.auth });
 
 
 // Place a new order
 exports.placeOrder = catchError(async (req, res, next) => {
      const userId = req.user._id;
      const cart = await CartModel.findOne({ user: userId }).populate('items.product');
+
      if (!cart) {
           return next(new ErrorHandler('Cart not found for the user', 404));
      }
+
+     // Check if the cart is empty
+     if (cart.items.length === 0) {
+          return next(new ErrorHandler('Cart is empty. Cannot place an order with an empty cart.', 400));
+     }
+
+     // Check if all products in the cart are available
+     const unavailableProducts = cart.items.filter(item => !item.product);
+     if (unavailableProducts.length > 0) {
+          const productNames = unavailableProducts.map(item => item.product.name).join(', ');
+          return next(new ErrorHandler(`Product(s) not found: ${productNames}`, 404));
+     }
+
      const totalAmount = cart.items.reduce((total, item) => total + item.product.price * item.quantity, 0);
+
      // Create a new order
      const order = new OrderModel({
           user: userId,
@@ -42,23 +47,39 @@ exports.placeOrder = catchError(async (req, res, next) => {
      const userEmail = req.user.email; // Replace with the user's email
      const orderItemNames = savedOrder.items.map((item) => item.product.name).join(', ');
 
+
+     const transporter = await nodemailer.createTransport({
+          host: "smtp.forwardemail.net",
+          port: 465,
+          secure: true,
+          auth: {
+               user: process.env.EMAIL_USER, // Use environment variable or configuration
+               pass: process.env.EMAIL_PASSWORD, // Use environment variable or configuration
+          },
+     });
+
+     console.log({ auth: transporter.auth });
+
      const mailOptions = {
-          from: 'lokeshbansiya29988@gmail.com', // Your Gmail email address
+          from: process.env.EMAIL_USER, // Use environment variable or configuration
           to: userEmail,
           subject: 'Order Placed Successfully',
           text: `Thank you for your order! Your order with items ${orderItemNames} has been placed successfully.`,
      };
 
-     transporter.sendMail(mailOptions, (error, info) => {
-          if (error) {
-               console.error('Error sending email:', error);
-          }
-          else {
-               console.log('Email sent:', info.response);
-          }
-     });
+     try {
+          const info = await transporter.sendMail(mailOptions);
+          console.log('Email sent:', info.response);
+     }
+     catch (error) {
+          console.error('Error sending email:', error);
+     }
+
      res.status(201).json({ success: true, message: 'Order placed successfully', order: savedOrder });
 });
+
+
+
 
 // Get user's orders
 exports.getUserOrders = catchError(async (req, res, next) => {

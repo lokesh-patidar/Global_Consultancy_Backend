@@ -3,6 +3,8 @@ const { CartModel } = require("../Models/cartModel");
 const { ProductModel } = require("../Models/productModel");
 const ErrorHandler = require("../Utils/ErrorHandler");
 
+
+
 exports.addToCart = catchError(async (req, res, next) => {
 
      const { productId } = req.params;
@@ -41,9 +43,6 @@ exports.addToCart = catchError(async (req, res, next) => {
 exports.getCartItems = catchError(async (req, res, next) => {
      const userId = req.user._id;
      const cart = await CartModel.findOne({ user: userId }).populate('items.product');
-     // if (!cart) {
-     //      return next(new ErrorHandler('Cart not found for the user', 404));
-     // }
      res.status(200).json({ success: true, message: 'Cart items', cart: cart.items || [] });
 });
 
