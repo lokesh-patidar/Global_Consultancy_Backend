@@ -48,36 +48,30 @@ exports.placeOrder = catchError(async (req, res, next) => {
      const orderItemNames = savedOrder.items.map((item) => item.product.name).join(', ');
 
 
-     const transporter = await nodemailer.createTransport({
-          host: "smtp.forwardemail.net",
-          port: 465,
-          secure: true,
+     const transporter = nodemailer.createTransport({
+          host: 'smtp.ethereal.email',
+          port: 587,
           auth: {
-               user: process.env.EMAIL_USER, // Use environment variable or configuration
-               pass: process.env.EMAIL_PASSWORD, // Use environment variable or configuration
-          },
+               user: 'dominique.torphy@ethereal.email',
+               pass: '3E2jcMBRxm2gqCceab'
+          }
      });
 
-     console.log({ auth: transporter.auth });
-
-     const mailOptions = {
-          from: process.env.EMAIL_USER, // Use environment variable or configuration
-          to: userEmail,
-          subject: 'Order Placed Successfully',
-          text: `Thank you for your order! Your order with items ${orderItemNames} has been placed successfully.`,
-     };
-
+     
      try {
-          const info = await transporter.sendMail(mailOptions);
-          console.log('Email sent:', info.response);
+          const info = await transporter.sendMail({
+               from: `<lokeshbansiya29988@gmail.com>`,
+               to: `<${userEmail}>`,
+               subject: 'Order Placed Successfully',
+               text: `Thank you for your order! Your order with items ${orderItemNames} has been placed successfully.`,
+          });
+          console.log({ 'msg sent': info.messageId });
      }
      catch (error) {
-          console.error('Error sending email:', error);
+          console.log({ error });
      }
-
      res.status(201).json({ success: true, message: 'Order placed successfully', order: savedOrder });
 });
-
 
 
 
